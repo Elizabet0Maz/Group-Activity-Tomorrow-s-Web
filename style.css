@@ -1,0 +1,424 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+} /*Removing the default padding and margin.*/
+
+/*Styles the body*/
+body{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #3F2616;
+    color: #3B281D;
+    overflow-x: hidden;
+}
+
+/*Styles the Hero*/
+.hero{
+    position: relative;
+    width: 100%;
+
+    /*Makes the Hero taller than the screen so the user can scroll naturally.*/
+    min-height: 1050px;
+    height: 1050px;
+
+    background-color: #E8D1A7;
+    overflow: hidden;
+    padding-top: 25px;
+}
+
+/*Styles the falling leaves image which is already in HTML*/
+.leaves-overlay{
+    position: absolute;
+    top: -25px;
+    left: 0;
+    width: 100%;
+    height: auto;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/*Styles the navigation*/
+nav{
+    position: relative;
+    z-index: 10;
+    width: calc(100% - 80px);
+    max-width: 1660px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+/*Styles both sides of the navigation*/
+.nav-left,
+.nav-right{
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/*Styles the navigation links*/
+nav a{
+    text-decoration: none;
+    color: #3B281D;
+    transition: opacity 0.2s ease;
+}
+
+/*Changes the navigation links when hovered over*/
+nav a:hover{
+    opacity: 0.7;
+}
+
+/*Styles the New badge*/
+.badge-new{
+    display: inline-block;
+    background-color: #3B281D;
+    color: #FFFFFF;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 3px;
+    vertical-align: middle;
+}
+
+/*Styles the logo*/
+.logo img{
+    display: block;
+    width: auto;
+    height: 32px;
+    object-fit: contain;
+}
+
+/*Styles the Book a trip button*/
+.btn-book{
+    display: inline-block;
+    background-color: #8C3B1E;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-decoration: none;
+}
+
+/*Styles the Hero content*/
+.hero-content{
+    position: relative;
+    z-index: 8;
+    width: 100%;
+    max-width: 700px;
+    margin: 55px auto 0;
+    text-align: center;
+}
+
+/*Styles the season pill*/
+.season-pill{
+    display: inline-block;
+    border: 1px solid #8E735C;
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+    color: #4D3A2C;
+    margin-bottom: 32px;
+}
+
+/*Styles the main Hero title*/
+.hero-content h1{
+    font-family: Georgia, serif;
+    font-size: clamp(58px, 5.5vw, 82px);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    color: #3B281D;
+    margin-bottom: 22px;
+}
+
+/*Styles the gold gradient*/
+.hero-content h1 span{
+    background: linear-gradient(
+        90deg,
+        #995329 0%,
+        #B96730 40%,
+        #C97935 70%,
+        #D58A42 100%
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+/*Styles the Hero description*/
+.hero-content p{
+    position: relative;
+    z-index: 9;
+    max-width: 420px;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #5B4A3D;
+}
+
+/*Styles the mountain image*/
+.mountain-container{
+    position: absolute;
+
+    /*Higher mountain. Change to 300px if you want it even higher.*/
+    top: 315px;
+
+    left: 0;
+    width: 100%;
+
+    /*Tall enough to reach the bottom of the Hero.*/
+    height: 735px;
+
+    overflow: hidden;
+    line-height: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.mountain-container img{
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+
+/*Styles the search bar*/
+.search-bar{
+    position: absolute;
+    z-index: 20;
+    left: 50%;
+
+    /*Keeps it near the bottom of the mountain image.*/
+    bottom: 105px;
+
+    transform: translateX(-50%);
+    width: min(760px, 88%);
+    display: flex;
+    align-items: center;
+    background: rgba(239, 218, 184, 0.96);
+    border: 2px solid #8E5A32;
+    padding: 13px 20px;
+    border-radius: 24px;
+    box-shadow:
+        0 8px 25px rgba(45, 30, 20, 0.12);
+}
+
+/*Styles the search fields*/
+.search-field{
+    flex: 1;
+    padding: 0 18px;
+    border-right: 1px solid #C9B292;
+}
+
+.search-field:first-child{
+    padding-left: 0;
+}
+
+.search-field:last-of-type{
+    border-right: none;
+}
+
+/*Styles the search labels*/
+.search-label{
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: #49372B;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+/*Styles the search input*/
+.search-input{
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    color: #8B775F;
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+/*Styles the search button*/
+.search-btn{
+    flex-shrink: 0;
+    width: 58px;
+    height: 58px;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #3B2F2F;
+    border: none;
+    border-radius: 17px;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+/*Changes the search button when hovered over*/
+.search-btn:hover{
+    background-color: #5C4A3D;
+    transform: scale(1.03);
+}
+
+.search-btn img{
+    width: 19px;
+    height: 19px;
+    object-fit: contain;
+}
+
+/*Styles the tablet version*/
+@media (max-width: 900px){
+
+    .hero{
+        min-height: 950px;
+        height: 950px;
+    }
+
+    nav{
+        width: calc(100% - 40px);
+    }
+
+    .nav-left,
+    .nav-right{
+        gap: 15px;
+        font-size: 13px;
+    }
+
+    .hero-content{
+        margin-top: 50px;
+    }
+
+    .hero-content h1{
+        font-size: 60px;
+    }
+
+    .leaves-overlay{
+        top: -20px;
+    }
+
+    .mountain-container{
+        top: 350px;
+        height: 600px;
+    }
+
+    .search-bar{
+        width: 90%;
+        bottom: 70px;
+    }
+}
+
+/*Styles the mobile version*/
+@media (max-width: 650px){
+
+    .hero{
+        min-height: 850px;
+        height: 850px;
+        padding-top: 18px;
+    }
+
+    nav{
+        width: calc(100% - 30px);
+    }
+
+    .nav-left,
+    .nav-right{
+        gap: 10px;
+        font-size: 11px;
+    }
+
+    .logo img{
+        height: 25px;
+    }
+
+    .btn-book{
+        padding: 7px 12px;
+    }
+
+    .hero-content{
+        margin-top: 45px;
+        padding: 0 20px;
+    }
+
+    .season-pill{
+        font-size: 10px;
+        padding: 6px 12px;
+        margin-bottom: 25px;
+    }
+
+    .hero-content h1{
+        font-size: 48px;
+        letter-spacing: -2px;
+    }
+
+    .hero-content p{
+        font-size: 12px;
+        max-width: 330px;
+    }
+
+    .leaves-overlay{
+        top: -15px;
+    }
+
+    .mountain-container{
+        top: 330px;
+        height: 520px;
+    }
+
+    .section-fade{
+        height: 60px;
+        background-size: auto 60px;
+        background-position: center bottom;
+    }
+
+    .search-bar{
+        width: calc(100% - 30px);
+        bottom: 45px;
+        padding: 10px;
+        border-radius: 20px;
+    }
+
+    .search-field{
+        padding: 0 8px;
+    }
+
+    .search-label{
+        font-size: 8px;
+    }
+
+    .search-input{
+        font-size: 10px;
+    }
+
+    .search-btn{
+        width: 45px;
+        height: 45px;
+        margin-left: 5px;
+        border-radius: 13px;
+    }
+
+    .search-btn img{
+        width: 15px;
+        height: 15px;
+    }
+}
+
+/*Styles the navigation columns inside the footer*/
+.site-footer .footer-col{
+    position: static;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    display: block;
+}

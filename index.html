@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Wander - Autumn Travel</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+  /* Design tokens: change a colour here and it updates everywhere. */
+  :root {
+    --rust: #743014;      /* warm red-brown: Autumn guide + tips band backgrounds */
+    --brown: #442D1C;     /* darkest tone: page background, body text on light sections */
+    --sand: #E8D1A7;      /* light text on dark sections, postcard paper */
+    --cream: #F6EBD3;     /* card surfaces on light sections */
+    --olive: #9D9167;     /* muted accent: icons, avatar fallback */
+    --caramel: #84592B;   /* mid brown accent */
+    --field: #a24f12;     /* golden-field colour used to blend "Why Wander" into "Autumn guide" */
+    --tape: rgba(157, 145, 103, 0.45);   /* translucent tape strip on postcards */
+    --rule: rgba(116, 48, 20, 0.25);     /* thin divider lines in the guide table */
+    --ease: cubic-bezier(.22, 1, .36, 1);  /* shared easing: quick start, soft landing */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }  /* in-page links glide instead of jumping */
+  .classmate-content { font-family: 'DM Sans', system-ui, sans-serif; background: var(--brown); }
+  /* Form controls and links don't inherit the page font by default. */
+  .classmate-content button, .classmate-content a, .classmate-content input { font-family: inherit; }
+
+  /* =========================================================
+     1. POSTCARDS (.escapes)
+     Intro, filter pills and a wrap-around row of tilted cards.
+     ========================================================= */
+  .escapes {
+    position: relative;
+    padding: 90px 40px 80px;
+    color: var(--sand);
+    text-align: center;
+    background-color: var(--brown);
+    /* A near-opaque brown overlay sits on top of the photo to keep the text readable. */
+    background-image:
+      linear-gradient(rgba(58,35,20,.88), rgba(58,35,20,.88)),
+      url("images/autumn-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+  }
+  .escapes h2 {
+    font-weight: 400;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    line-height: 1.2;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .escapes .sub { font-size: .75rem; margin-top: 22px; }
+
+  .escapes .filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .escapes .filters button {
+    font: inherit;
+    font-size: .8rem;
+    color: var(--sand);
+    background: transparent;
+    border: 1px solid var(--sand);
+    border-radius: 999px;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: background .2s, color .2s, border-color .2s, transform .2s var(--ease);
+  }
+  .escapes .filters button.active {
+    background: var(--sand);
+    border-color: var(--sand);
+    color: var(--brown);
+  }
+  .escapes .filters button:focus-visible,
+  .escapes .more:focus-visible,
+  .escapes .go:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+  .escapes .cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 36px 34px;
+    max-width: 1100px;
+    margin: 60px auto 0;
+    padding-top: 20px;
+  }
+  /* --tilt (card angle) and --tape-tilt (tape angle) are set inline on each card
+     in the HTML, so every postcard sits at a slightly different angle. */
+  .escapes .card {
+    position: relative;
+    width: 200px;
+    text-align: left;
+    transform: rotate(var(--tilt));
+    transition: transform .45s var(--ease);
+  }
+  /* Added by the filter script to remove cards that don't match the selected filter. */
+  .escapes .card.hide { display: none; }
+  /* Decorative tape strip holding the postcard to the "wall". */
+  .escapes .card::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 22%;
+    width: 62%;
+    height: 40px;
+    background: var(--tape);
+    transform: rotate(var(--tape-tilt));
+    transition: transform .45s var(--ease);
+    z-index: 0;
+  }
+  .escapes .card-body {
+    position: relative;
+    z-index: 1;
+    background: var(--sand);
+    color: var(--brown);
+    border-radius: 6px;
+    padding: 6px 6px 14px;
+    box-shadow: 0 8px 18px rgba(0,0,0,.35);
+    transition: box-shadow .45s var(--ease);
+  }
+  .escapes .photo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 4px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #b5471f, #e08a2c);  /* shows while the image loads or if it fails */
+  }
+  .escapes .photo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .7s var(--ease);
+  }
+  .escapes .info { padding: 10px 6px 0; }
+  .escapes .info h3 { font-size: 1.05rem; font-weight: 700; line-height: 1.2; }
+  .escapes .timing { font-size: .6rem; margin-top: 4px; letter-spacing: .02em; }
+  /* min-height reserves two lines so cards with short blurbs stay the same height. */
+  .escapes .desc { font-size: .72rem; line-height: 1.4; margin-top: 12px; min-height: 2.8em; }
+  .escapes .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .escapes .price { font-size: .78rem; font-weight: 700; }
+  .escapes .go {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--brown);
+    color: var(--sand);
+    display: grid; place-items: center;
+    text-decoration: none;
+    font-size: .65rem;
+    transition: transform .25s var(--ease), background .25s;
+  }
+  .escapes .more {
+    display: inline-block;
+    margin-top: 56px;
+    background: var(--sand);
+    color: var(--brown);
+    font-size: .8rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 9px 22px;
+    border-radius: 999px;
+    transition: transform .25s var(--ease), background .25s, box-shadow .25s;
+  }
+
+  /* =========================================================
+     2. WHY WANDER (.why)
+     Full-height section over a landscape illustration, with four feature cards.
+     ========================================================= */
+  .why {
+    position: relative;
+    min-height: 100vh;
+    /* Large top/bottom padding leaves room for the illustration (14.png) and the
+       golden field at the bottom that blends into section 3. */
+    padding: 170px 40px 340px;
+    color: var(--brown);
+    text-align: center;
+    background-image: url("images_section_one/14.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .why .inner { position: relative; z-index: 1; max-width: 1060px; margin: 0 auto; }
+  .why .eyebrow { font-size: .65rem; letter-spacing: .02em; }
+  .why h2 {
+    font-weight: 400;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.2;
+    max-width: 420px;
+    margin: 16px auto 0;
+  }
+  .why .sub { font-size: .72rem; margin-top: 28px; }
+  .why .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+    text-align: left;
+  }
+  .why .card {
+    background: var(--cream);
+    border-radius: 26px;
+    padding: 18px 18px 26px;
+    min-height: 178px;
+    transition: transform .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .why .top { display: flex; align-items: center; justify-content: space-between; }
+  .why .icon {
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    display: grid; place-items: center;
+    transition: transform .4s var(--ease);
+  }
+  .why .icon img { width: 18px; height: 18px; }
+  .why .num { font-size: 1.5rem; font-weight: 300; transition: color .3s; }
+  .why .card h3 { font-size: 1.1rem; font-weight: 400; margin-top: 26px; }
+  .why .card p { font-size: .68rem; line-height: 1.5; margin-top: 10px; }
+
+  /* =========================================================
+     3. AUTUMN GUIDE (.guide)
+     A Sep-Dec timeline: one row per place, a coloured bar marks peak colour.
+     ========================================================= */
+  .guide {
+    position: relative;
+    padding: 110px 40px 120px;
+    text-align: center;
+    color: var(--sand);
+    background-color: var(--rust);
+    background-image: url("images_section_one/15.png");
+    background-position: center;
+    background-size: cover;
+    overflow: hidden;
+  }
+  /* Keeps content above the gradient blends drawn by ::before / ::after (see section 6). */
+  .guide > * { position: relative; z-index: 1; }
+  .guide .eyebrow { font-size: .65rem; color: var(--sand); }
+  .guide h2 {
+    font-weight: 400;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.2;
+    max-width: 420px;
+    margin: 16px auto 0;
+  }
+  .guide .sub { font-size: .72rem; margin-top: 28px; color: var(--cream); }
+
+  .guide .panel {
+    max-width: 732px;
+    margin: 32px auto 0;
+    background: var(--cream);
+    color: var(--rust);
+    border-radius: 28px;
+    padding: 18px 10px 14px;
+    text-align: left;
+    overflow-x: auto;
+  }
+  /* Minimum width keeps the timeline legible; the panel scrolls sideways on narrow screens. */
+  .guide .table { min-width: 620px; }
+  .guide .row {
+    display: grid;
+    grid-template-columns: 35.7% 1fr;   /* place name | timeline track */
+    align-items: center;
+    border-bottom: 1px solid var(--rule);
+    height: 39px;
+    font-size: .8rem;
+    transition: background .3s;
+  }
+  .guide .row.head { height: 26px; font-size: .68rem; }
+  .guide .track { position: relative; height: 100%; }
+  .guide .months span { position: absolute; top: 50%; transform: translateY(-50%); }
+  .guide .bar {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 24px;
+    width: 30.6%;   /* default length; override inline on a bar for a longer or shorter window */
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: var(--cream);
+    font-size: .68rem;
+    white-space: nowrap;
+  }
+  .guide .note { font-size: .55rem; margin-top: 12px; padding-bottom: 2px; }
+
+  /* =========================================================
+     4. TIPS + TRAVELLERS STORIES (.tips, .stories)
+     Tips band with a scalloped bottom edge, then testimonial cards.
+     ========================================================= */
+  .tips {
+    position: relative;
+    background: var(--rust);
+    color: var(--sand);
+    padding: 40px 40px 52px;
+  }
+  .tips-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .tip { transition: transform .35s var(--ease); }
+  .tip h3 { font-size: 1rem; font-weight: 400; transition: color .3s; }
+  .tip p { font-size: .68rem; line-height: 1.6; margin-top: 18px; max-width: 170px; }
+  /* Dashed rule near the bottom of the band, like a tear-off line. */
+  .tips::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 20px;
+    border-top: 1px dashed rgba(232, 209, 167, .7);
+  }
+  /* Scalloped edge: a row of rust semicircles hanging below the band, overlapping
+     the top of the stories section. */
+  .tips::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 100%;
+    height: 14px;
+    background: radial-gradient(circle at 50% 0, var(--rust) 13.5px, transparent 14px) 0 0 / 28px 14px repeat-x;
+  }
+
+  .stories {
+    padding: 70px 40px 60px;
+    text-align: center;
+    color: var(--brown);
+    background-color: var(--sand);
+    background-image: url("images/stories-bg.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  .stories .eyebrow { font-size: .6rem; }
+  .stories h2 {
+    font-weight: 400;
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    line-height: 1.2;
+    max-width: 360px;
+    margin: 14px auto 0;
+  }
+  .stories .sub { font-size: .66rem; margin-top: 28px; }
+  .stories .grid {
+    max-width: 756px;
+    margin: 18px auto 0;
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 14px;
+    text-align: left;
+  }
+  .stories .right { display: grid; gap: 14px; }
+  .stories .card {
+    border-radius: 22px;
+    padding: 22px 20px;
+    transition: transform .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .stories .card.big {
+    background: var(--brown) center / cover;
+    background-image: url("images/story-dark.jpg");
+    color: var(--sand);
+    padding: 28px 28px 26px;
+    min-height: 250px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .stories .card.small {
+    background: var(--cream) center / cover;
+    background-image: url("images/story-light.jpg");
+    color: var(--brown);
+    display: flex; flex-direction: column; justify-content: space-between;
+    gap: 14px;
+  }
+  .stories .card.small blockquote { font-size: .75rem; line-height: 1.55; }
+  .stories .quote-mark { height: 34px; }
+  .stories .card.big blockquote { font-size: 1.45rem; line-height: 1.3; margin-top: 18px; }
+  .stories .person { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
+  .stories .small .person { margin-top: 0; }
+  .stories .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--olive);
+    object-fit: cover;
+    flex: none;
+    transition: transform .35s var(--ease);
+  }
+  .stories .name { font-size: 1.15rem; line-height: 1.1; }
+  .stories .loc { display: block; font-size: .55rem; margin-top: 4px; }
+  .stories .big .loc { color: var(--olive); }
+  .stories .small .loc { color: var(--rust); }
+  .stories .more {
+    display: inline-block;
+    margin-top: 22px;
+    font: inherit;
+    font-size: .68rem;
+    color: var(--brown);
+    background: transparent;
+    border: 1px solid var(--brown);
+    border-radius: 999px;
+    padding: 6px 16px;
+    text-decoration: none;
+    transition: background .25s, color .25s, transform .25s var(--ease);
+  }
+  .stories .more:focus-visible { outline: 2px solid var(--brown); outline-offset: 3px; }
+
+  /* =========================================================
+     4c. NEWSLETTER SIGN-UP (.join)
+     Background photo, a large rust card in the centre, and two tilted
+     polaroids overlapping the card's left and right edges.
+     ========================================================= */
+  .join {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: 130px 40px;
+    background-color: var(--brown);   /* fallback if the image is missing */
+    background-image: url("images/newsletter-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;                 /* stops the tilted polaroids causing sideways scroll */
+  }
+  .join-card {
+    position: relative;               /* anchor for the absolutely positioned polaroids */
+    width: 100%;
+    max-width: 720px;
+    padding: 64px 56px 52px;
+    background: var(--rust);
+    color: var(--sand);
+    border-radius: 28px;
+    text-align: center;
+  }
+  .join .eyebrow { font-size: 1.15rem; font-weight: 300; }
+  .join h2 {
+    font-weight: 400;
+    font-size: clamp(2rem, 4.6vw, 2.8rem);
+    line-height: 1.25;
+    margin-top: 18px;
+  }
+  .join .sub { font-size: .72rem; margin-top: 20px; }
+
+  /* Email field and button sit on one row and wrap onto two lines on small screens. */
+  .join .signup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    max-width: 520px;
+    margin: 26px auto 0;
+  }
+  .join .signup input {
+    flex: 1 1 260px;
+    min-width: 0;
+    height: 44px;
+    padding: 0 22px;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--cream);
+    color: var(--brown);
+    font-size: .85rem;
+    transition: border-color .25s, box-shadow .25s;
+  }
+  .join .signup input::placeholder { color: rgba(68, 45, 28, .55); }
+  .join .signup input:focus { outline: none; border-color: var(--sand); box-shadow: 0 0 0 4px rgba(232, 209, 167, .3); }
+  .join .signup button {
+    flex: 0 0 auto;
+    height: 44px;
+    padding: 0 28px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--sand);
+    color: var(--rust);
+    font-size: .8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform .25s var(--ease), background .25s, box-shadow .25s;
+  }
+  .join .signup button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  .join .fine { font-size: .62rem; margin-top: 18px; }
+
+  /* Polaroids: sand frame with a thicker bottom edge. The photo area shows a
+     gradient until the image loads. --r is the resting angle, --ratio the photo shape. */
+  .join .polaroid {
+    position: absolute;
+    width: 190px;
+    padding: 4px 4px 8px;
+    background: var(--sand);
+    border-radius: 4px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, .4);
+    transform: rotate(var(--r));
+    transition: transform .45s var(--ease), box-shadow .45s var(--ease);
+  }
+  .join .polaroid img {
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--ratio);
+    object-fit: cover;
+    background: linear-gradient(135deg, #b5471f, #e08a2c);
+  }
+  .join .polaroid.left  { --r: -8deg; --ratio: 1 / 1; left: -80px; top: 90px; }
+  .join .polaroid.right { --r: 12deg; --ratio: 4 / 5; right: -84px; top: -40px; }
+
+  /* Visually hidden but still read aloud by screen readers (used for the email label). */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* =========================================================
+     4d. FOOTER (.site-footer)
+     Brand + link columns, a divider, a legal row, and a giant wordmark
+     whose lower edge is hidden behind the landscape in the background image.
+     ========================================================= */
+  .site-footer {
+    position: relative;
+    padding: 56px 40px 0;
+    color: var(--brown);
+    background-color: var(--sand);     /* fallback if the image is missing */
+    background-image: url("images_section_one/23.png");
+    background-size: cover;
+    background-position: center bottom;
+    z-index: 0;
+  }
+  .site-footer > * { position: relative; z-index: 1; max-width: 1300px; margin-left: auto; margin-right: auto; }
+
+
+  /* Top row: wide brand column, then three equal link columns. */
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(68, 45, 28, .25);   /* the divider line */
+  }
+  .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--brown); text-decoration: none; }
+  .brand img { height: 26px; width: auto; display: block; }
+  .brand span { font-size: 1.35rem; font-weight: 700; letter-spacing: .02em; }
+  .brand-col p { font-size: .8rem; line-height: 1.5; max-width: 250px; margin-top: 18px; }
+
+  .socials { display: flex; gap: 10px; margin-top: 20px; }
+  .socials a {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--brown);
+    color: var(--sand);
+    display: grid; place-items: center;
+    transition: transform .25s var(--ease), background .25s;
+  }
+  .socials svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .footer-col h3 { font-size: .68rem; font-weight: 400; letter-spacing: .04em; text-transform: uppercase; }
+  .footer-col ul { list-style: none; display: grid; gap: 14px; margin-top: 24px; }
+  .footer-col a {
+    display: inline-block;
+    font-size: .72rem;
+    color: var(--brown);
+    text-decoration: none;
+    transition: transform .25s var(--ease), color .25s;
+  }
+
+  /* Legal row: copyright on the left, "Back to top" pill on the right. */
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 26px 0 20px;
+    font-size: .68rem;
+  }
+  .to-top {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 18px;
+    border: 1px solid var(--brown);
+    border-radius: 999px;
+    color: var(--brown);
+    font-size: .75rem;
+    text-decoration: none;
+    transition: background .25s, color .25s, transform .25s var(--ease);
+  }
+  .to-top svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s var(--ease); }
+  .socials a:focus-visible, .footer-col a:focus-visible, .to-top:focus-visible, .brand:focus-visible { outline: 2px solid var(--brown); outline-offset: 3px; }
+
+  /* Oversized wordmark. Tight line-height makes the letters end right at the
+     bottom edge, where the landscape overlay covers their feet. Tune font-size
+     if the word doesn't span the full width in your final font. */
+  .wordmark {
+    font-size: clamp(4rem, 21vw, 17.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    user-select: none;
+    margin-top: 10px;
+    z-index: 0;
+    
+  }
+
+  /* =========================================================
+     5. MOTION & INTERACTION
+     - Scroll reveal: the script at the bottom adds .reveal to elements and
+       .in-view once they scroll into view. Because the class comes from JS,
+       the page stays fully visible if scripts don't run.
+     - Hover effects are grouped here and wrapped in (hover: hover) so touch
+       screens don't get "stuck" hover states.
+     - Reduced-motion visitors get none of it (see the end of this section).
+     ========================================================= */
+
+  /* Entrance: fade up. --d is a per-element delay set by JS to stagger siblings.
+     Uses the separate `translate` property so it never fights the postcard
+     rotation or the hover transforms, which both use `transform`. */
+  .reveal:not(.in-view) { opacity: 0; }
+  .reveal.in-view { animation: rise .8s var(--ease) backwards; animation-delay: var(--d, 0ms); }
+  @keyframes rise { from { opacity: 0; translate: 0 28px; } }
+
+  /* Timeline bars "draw" left to right when the panel appears.
+     --i (row number, set by JS) staggers the rows. */
+  .guide .bar {
+    clip-path: inset(0 0 0 0 round 999px);
+    transition: clip-path 1s var(--ease) calc(.3s + var(--i, 0) * .12s), filter .25s;
+  }
+  .guide .panel.reveal:not(.in-view) .bar { clip-path: inset(0 100% 0 0 round 999px); }
+
+  /* Pressed state for filter pills works on touch as well as mouse. */
+  .escapes .filters button:active { transform: scale(.96); }
+
+  @media (hover: hover) {
+    /* Postcards straighten, lift and zoom their photo. */
+    .escapes .card:hover { transform: rotate(0deg) translateY(-10px) scale(1.04); }
+    .escapes .card:hover::before { transform: rotate(calc(var(--tape-tilt) * .3)); }
+    .escapes .card:hover .card-body { box-shadow: 0 20px 34px rgba(0,0,0,.45); }
+    .escapes .card:hover .photo img { transform: scale(1.08); }
+    .escapes .go:hover { transform: scale(1.2); background: var(--rust); }
+
+    /* Buttons and pills. */
+    .escapes .filters button:hover { border-color: #fff; background: rgba(232, 209, 167, .14); transform: translateY(-2px); }
+    .escapes .filters button.active:hover { background: var(--cream); }
+    .escapes .more:hover { background: var(--cream); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,.3); }
+    .stories .more:hover { background: var(--brown); color: var(--sand); transform: translateY(-2px); }
+
+    /* Why Wander cards lift; the icon tilts and the number warms up. */
+    .why .card:hover { transform: translateY(-8px); box-shadow: 0 16px 28px rgba(68, 45, 28, .25); }
+    .why .card:hover .icon { transform: rotate(-8deg) scale(1.1); }
+    .why .card:hover .num { color: var(--rust); }
+
+    /* Guide: highlight the hovered row and brighten its bar. */
+    .guide .row:not(.head):hover { background: rgba(116, 48, 20, .07); }
+    .guide .row:hover .bar { filter: brightness(1.2); }
+
+    /* Tips and stories. */
+    .tip:hover { transform: translateY(-4px); }
+    .tip:hover h3 { color: var(--cream); }
+    .stories .card:hover { transform: translateY(-6px); box-shadow: 0 16px 30px rgba(68, 45, 28, .28); }
+    .stories .card:hover .avatar { transform: scale(1.12); }
+
+    /* Newsletter: polaroids straighten and lift; the button rises. */
+    .join .polaroid:hover { transform: rotate(0deg) translateY(-8px) scale(1.04); box-shadow: 0 18px 30px rgba(0, 0, 0, .45); }
+    .join .signup button:hover { background: var(--cream); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0, 0, 0, .3); }
+
+    /* Footer: links nudge right, social icons lift, "Back to top" fills and the arrow rises. */
+    .footer-col a:hover { transform: translateX(5px); color: var(--rust); }
+    .socials a:hover { transform: translateY(-3px); background: var(--rust); }
+    .to-top:hover { background: var(--brown); color: var(--sand); transform: translateY(-2px); }
+    .to-top:hover svg { transform: translateY(-3px); }
+  }
+
+  /* Respect the OS "reduce motion" setting: effectively instant, no smooth scroll. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: .01ms !important;
+      transition-delay: 0ms !important;
+    }
+  }
+
+  /* =========================================================
+     6. SECTION SEAMS
+     Each seam is a gradient between the colours at the edges of the two
+     neighbouring sections, so no section looks cropped.
+     ========================================================= */
+  /* Section content stays above the blend overlays. */
+  .escapes > * { position: relative; z-index: 1; }
+  .escapes::after,
+  .why::before, .why::after,
+  .guide::before, .guide::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 1 -> 2: Postcards fade into solid brown, which meets the brown top edge of Why Wander. */
+  .escapes::after {
+    bottom: 0;
+    height: 140px;
+    background: linear-gradient(to bottom, rgba(68,45,28,0), var(--brown));
+  }
+
+  /* 2 -> 3: the golden field at the bottom of Why Wander melts into the top of Autumn guide. */
+  .why::after {
+    bottom: 0;
+    height: 110px;
+    background: linear-gradient(to bottom, rgba(162,79,18,0), var(--field));
+  }
+  .guide::before {
+    top: 0;
+    height: 110px;
+    background: linear-gradient(to bottom, var(--field), rgba(162,79,18,0));
+  }
+
+  /* 3 -> 4: Autumn guide settles into the solid rust of the tips band. */
+  .guide::after {
+    bottom: 0;
+    height: 110px;
+    background: linear-gradient(to bottom, rgba(116,48,20,0), var(--rust));
+  }
+
+  /* =========================================================
+     7. RESPONSIVE
+     Breakpoints step down: tablet (900), stacked columns (800), phone (520).
+     ========================================================= */
+  @media (max-width: 900px) {   /* tablet: feature cards go 2 x 2 */
+    .why .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 800px) {   /* tips and stories stack into one column */
+    .tips-inner { grid-template-columns: 1fr; }
+    .stories .grid { grid-template-columns: 1fr; }
+    .join-card { padding: 56px 32px 44px; }
+    .join .polaroid { width: 130px; padding: 6px 6px 22px; }
+    .join .polaroid.left { left: -28px; top: auto; bottom: -50px; }
+    .join .polaroid.right { right: -28px; top: -50px; }
+    .footer-top { grid-template-columns: 1fr 1fr; }   /* brand on its own row, links 2 x 2 */
+    .brand-col { grid-column: 1 / -1; }
+  }
+  @media (max-width: 520px) {   /* phone: tighter padding, single-column cards */
+    .escapes { padding: 60px 20px; }
+    .escapes .card { width: 220px; }
+    .why { padding: 130px 20px 300px; }
+    .why .grid { grid-template-columns: 1fr; }
+    .guide { padding: 90px 16px 80px; }
+    .tips, .stories { padding-left: 20px; padding-right: 20px; }
+    .join { padding: 110px 20px; }
+    .join .polaroid { width: 96px; }
+    .site-footer { padding: 44px 20px 0; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; }
+  }
+  .classmate-content h1,
+  .classmate-content h2,
+  .classmate-content h3,
+  .classmate-content h4,
+  .classmate-content h5,
+  .classmate-content h6 {
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+
+    </style>
+</head>
+
+
+<body id="top">
+
+    <section class="hero">
+
+        <img class="leaves-overlay" src="images_section_one/1 (2).png" alt="" aria-hidden="true">
+        <nav>
+            <div class="nav-left">
+                <a href="kyoto.html">Destination</a>
+                <a href="#">Autumn Offers <span class="badge-new">New</span></a>
+            </div>
+
+
+            <div class="logo">
+                <img src="images_section_one/logo (3).png" alt="Wander Logo">
+            </div>
+
+            <div class="nav-right">
+                <a href="#">Journal</a>
+                <a href="#">Sign in</a>
+                <a href="#" class="btn-book"> Book a trip</a>
+            </div>
+        </nav>
+
+
+        <div class="hero-content">
+
+            <span class="season-pill">AUTUMN 2026 · SEASON OF SLOW TRAVEL</span>
+
+            <h1>Follow the<br>
+              <span>
+                    golden light.
+                </span>
+            </h1>
+
+            <p>
+                Quiet trails, warm cabins and forests on fire.
+                Find where the leaves are turning and wander there,
+                no rush.
+            </p>
+
+        </div>
+
+        <div class="mountain-container">
+            <img src="images_section_one/2.png" alt="Autumn mountain landscape">
+        </div>
+
+        <div class="section-fade" aria-hidden="true"></div>
+
+        <div class="search-bar">
+          
+          <div class="search-field">
+            <div class="search-label">Where to</div>
+            <input type="text" class="search-input" value="Kyoto, Vermont..." aria-label="Where to" readonly>
+          </div>
+          
+          <div class="search-field">
+             <div class="search-label">When</div>
+             <input type="text" class="search-input" value="Oct - Nov" aria-label="When" readonly>
+          </div>
+          
+          <div class="search-field">
+            <div class="search-label">Travellers</div>
+            <input type="text" class="search-input" value="2 adults" aria-label="Travellers" readonly>
+          </div>
+
+            <button type="button" class="search-btn" aria-label="Search">
+                <img src="images_section_one/7 (2).png" alt="">
+
+            </button>
+        </div>
+
+    </section>
+
+
+
+
+
+    <div class="classmate-content">
+
+<!-- SECTION 1: Postcards
+     Each card's data-tags lists the filters it belongs to (foliage, mountains, cosy, short).
+     --tilt and --tape-tilt set the card and tape angles; alternate their signs between neighbours. -->
+<section class="escapes">
+  <h2>Postcards from the season of gold.</h2>
+  <p class="sub">Five places worth the trip while the leaves are turning.</p>
+
+  <!-- Filter pills: data-filter must match a word in a card's data-tags ("all" shows every card). -->
+  <div class="filters" role="group" aria-label="Filter escapes">
+    <button class="active" data-filter="all">All escapes</button>
+    <button data-filter="foliage">Foliage</button>
+    <button data-filter="mountains">Mountains</button>
+    <button data-filter="cosy">Cosy stays</button>
+    <button data-filter="short">Under 5 days</button>
+  </div>
+
+  <!-- To add a destination, copy one <article> below and update its tags, image, text and link. -->
+  <div class="cards">
+
+    <article class="card" data-tags="foliage short" style="--tilt:-2.16deg; --tape-tilt:6.03deg;">
+      <div class="card-body">
+        <div class="photo"><img src="images_section_one/3.png" alt="Kiyomizu-dera pagoda framed by red maple leaves"></div>
+        <div class="info">
+          <h3>Kyoto, Japan</h3>
+          <p class="timing">PEAK · MID-NOV</p>
+          <p class="desc">Temple gardens and maple tunnels.</p>
+          <div class="foot">
+            <span class="price">From $1,450</span>
+            <a class="go" href="#kyoto" aria-label="More about Kyoto, Japan">&gt;</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" data-tags="foliage cosy" style="--tilt:1.92deg; --tape-tilt:-6.03deg;">
+      <div class="card-body">
+        <div class="photo"><img src="images_section_one/3.png" alt="Autumn forest reflected in a Vermont lake"></div>
+        <div class="info">
+          <h3>Vermont, USA</h3>
+          <p class="timing">PEAK · EARLY-OCT</p>
+          <p class="desc">Covered bridge and maple roads.</p>
+          <div class="foot">
+            <span class="price">From $980</span>
+            <a class="go" href="#vermont" aria-label="More about Vermont, USA">&gt;</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" data-tags="mountains foliage" style="--tilt:-1.92deg; --tape-tilt:6.03deg;">
+      <div class="card-body">
+        <div class="photo"><img src="images_section_one/5.png" alt="Dolomite peaks above golden larch forest"></div>
+        <div class="info">
+          <h3>Dolomites, Italy</h3>
+          <p class="timing">PEAK · MID-OCT</p>
+          <p class="desc">Golden larches and mountain huts.</p>
+          <div class="foot">
+            <span class="price">From $1,320</span>
+            <a class="go" href="#dolomites" aria-label="More about Dolomites, Italy">&gt;</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" data-tags="mountains cosy short" style="--tilt:1.92deg; --tape-tilt:-6.03deg;">
+      <div class="card-body">
+        <div class="photo"><img src="images_section_one/6.png" alt="Misty autumn glen in the Scottish Highlands"></div>
+        <div class="info">
+          <h3>Scottish Highlands</h3>
+          <p class="timing">PEAK · OCT</p>
+          <p class="desc">Misty glens and slow cabin nights.</p>
+          <div class="foot">
+            <span class="price">From $890</span>
+            <a class="go" href="#highlands" aria-label="More about the Scottish Highlands">&gt;</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <a class="more" href="#all">See all autumn escapes</a>
+</section>
+
+<!-- SECTION 2: Why Wander (four numbered feature cards; icon background colours are inline) -->
+<section class="why">
+  <div class="inner">
+    <p class="eyebrow">WHY WANDER</p>
+    <h2>Travel at the pace of autumn</h2>
+    <p class="sub">We plan the details so you can leave the rushing behind.</p>
+
+    <div class="grid">
+
+      <article class="card">
+        <div class="top">
+          <div class="icon" style="background:#743014"><img src="images_section_one/10.png" alt=""></div>
+          <span class="num">01</span>
+        </div>
+        <h3>Slow-paced routes</h3>
+        <p>Itineraries built around long mornings, short drives and time to just sit and look.</p>
+      </article>
+
+      <article class="card">
+        <div class="top">
+          <div class="icon" style="background:#84592B"><img src="images_section_one/11.png" alt=""></div>
+          <span class="num">02</span>
+        </div>
+        <h3>Hand-picked stays</h3>
+        <p>Cabins, inns and guesthouses we would book ourselves, each with a story.</p>
+      </article>
+
+      <article class="card">
+        <div class="top">
+          <div class="icon" style="background:#442D1C"><img src="images_section_one/12.png" alt=""></div>
+          <span class="num">03</span>
+        </div>
+        <h3>Flexible booking</h3>
+        <p>Plans change. Move your dates without a fuss when the weather or life does.</p>
+      </article>
+
+      <article class="card">
+        <div class="top">
+          <div class="icon" style="background:#9D9167"><img src="images_section_one/13.png" alt=""></div>
+          <span class="num">04</span>
+        </div>
+        <h3>Local guides</h3>
+        <p>Real people who know the trails, the tea houses and the best light of the day.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: Autumn guide (timeline)
+     The track runs Sep to Dec. A bar's inline "left" (and optional "width") is a percentage of the track,
+     tuned to line up with the month labels. Bars default to 30.6% wide (see CSS). -->
+<section class="guide">
+  <p class="eyebrow">AUTUMN GUIDE</p>
+  <h2>When to go, where the colour is</h2>
+  <p class="sub">A simple calendar to help you catch each place at its golden best.</p>
+
+  <div class="panel">
+    <div class="table" role="table" aria-label="Best autumn colour timing by place">
+
+      <div class="row head" role="row">
+        <div class="place" role="columnheader">PLACE</div>
+        <div class="track months" role="presentation">
+          <span style="left:0">SEP</span>
+          <span style="left:26.9%">OCT</span>
+          <span style="left:50.8%">NOV</span>
+          <span style="left:76.6%">DEC</span>
+        </div>
+      </div>
+
+      <div class="row" role="row">
+        <div class="place" role="rowheader">Kyoto, Japan</div>
+        <div class="track"><span class="bar" style="left:50.5%; background:#743014">mid-Nov to early Dec</span></div>
+      </div>
+
+      <div class="row" role="row">
+        <div class="place" role="rowheader">Vermont, USA</div>
+        <div class="track"><span class="bar" style="left:0; background:#84592B">late Sep to mid-Oct</span></div>
+      </div>
+
+      <div class="row" role="row">
+        <div class="place" role="rowheader">Dolomites, Italy</div>
+        <div class="track"><span class="bar" style="left:26.3%; background:#442D1C">mid-Oct to early Nov</span></div>
+      </div>
+
+      <div class="row" role="row">
+        <div class="place" role="rowheader">Scottish Highlands</div>
+        <div class="track"><span class="bar" style="left:13.6%; background:#9D9167">October</span></div>
+      </div>
+
+      <div class="row" role="row">
+        <div class="place" role="rowheader">Bavaria, Germany</div>
+        <div class="track"><span class="bar" style="left:13.6%; width:43.3%; background:#84592B">October to early Nov</span></div>
+      </div>
+
+      <p class="note">Peak colour timings are typical. Conditions change from year to year.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4a: Tips band (its scalloped bottom edge is drawn in CSS) -->
+<section class="tips">
+  <div class="tips-inner">
+    <div class="tip">
+      <h3>01 Go early</h3>
+      <p>Mornings are quieter and the light is softest before 9.</p>
+    </div>
+    <div class="tip">
+      <h3>02 Pack for layers</h3>
+      <p>Days are warm and nights are cold. Bring layers you can peel off.</p>
+    </div>
+    <div class="tip">
+      <h3>03 Book cosy stays first</h3>
+      <p>Cabins and inns fill up before the flights do. Reserve them early.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4b: Travellers stories (one large quote on the left, two small on the right) -->
+<section class="stories">
+  <p class="eyebrow">TRAVELLERS STORIES</p>
+  <h2>Notes from the road</h2>
+  <p class="sub">Real moments from travellers who followed the golden light.</p>
+
+  <div class="grid">
+    <article class="card big">
+      <div>
+        <div class="quote-mark" aria-hidden="true"><img src="images_section_one/quote.png" alt=""></div>
+        <blockquote>We had no plan except the light. Every morning WANDER had a quiet trail and a warm cabin waiting.</blockquote>
+      </div>
+      <div class="person">
+        <img class="avatar" src="images_section_one/18.png" alt="">
+        <div><span class="name">Romi</span><span class="loc">VERMONT · OCTOBER</span></div>
+      </div>
+    </article>
+
+    <div class="right">
+      <article class="card small">
+        <blockquote>&ldquo;The guide knew a tea house nobody else did. It was the best afternoon of the whole trip.&rdquo;</blockquote>
+        <div class="person">
+          <img class="avatar" src="images_section_one/19.png" alt="">
+          <div><span class="name">Farid</span><span class="loc">KYOTO · NOVEMBER</span></div>
+        </div>
+      </article>
+
+      <article class="card small">
+        <blockquote>&ldquo;Flexible dates saved us when the rain came. They simply moved us by a week.&rdquo;</blockquote>
+        <div class="person">
+          <img class="avatar" src="images_section_one/20.png" alt="">
+          <div><span class="name">Gab</span><span class="loc">BAVARIA · OCTOBER</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <a class="more" href="#stories">Read more stories</a>
+</section>
+
+<!-- SECTION 5: Newsletter sign-up
+     The form has no backend yet: the script at the bottom only shows a thank-you message.
+     To go live, give the <form> a real action URL (or send the value to your email service)
+     and remove the preventDefault handler. -->
+<section class="join">
+  <div class="join-card">
+    <figure class="polaroid left"><img src="images_section_one/21.png" alt="Stone bridge over a lake in autumn colours"></figure>
+    <figure class="polaroid right"><img src="images_section_one/22.png" alt="Orange and green autumn forest on a hillside"></figure>
+
+    <p class="eyebrow">Join the journey</p>
+    <h2>Get autumn deals<br>before anyone else</h2>
+    <p class="sub">One easy email a month with new escapes, quiet trails and early-bird offers.</p>
+
+    <form class="signup" action="#" method="post">
+      <label class="sr-only" for="signup-email">Email address</label>
+      <input id="signup-email" type="email" name="email" placeholder="Your email address" autocomplete="email" required>
+      <button type="submit">Sign me up</button>
+    </form>
+    <p class="fine" aria-live="polite">No spam. Unsubscribe any time.</p>
+  </div>
+</section>
+
+<!-- SECTION 6: Footer
+     Links point to "#" placeholders until the real pages exist. The big WANDER word is
+     decorative (aria-hidden); the brand name is already announced in the logo link above. -->
+<footer class="site-footer">
+  <div class="footer-top">
+
+    <div class="brand-col">
+      <a class="brand" href="#top" aria-label="Wander, back to top">
+        <img src="images_section_one/pureLogo.png" alt="">
+        <span>WANDER</span>
+      </a>
+      <p>Slow travel for people who like the leaves turning and the days unhurried.</p>
+      <div class="socials">
+        <a href="#" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/></svg>
+        </a>
+        <a href="#" aria-label="YouTube">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.5v5l4.5-2.5z"/></svg>
+        </a>
+        <a href="#" aria-label="Email us">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <nav class="footer-col" aria-label="Explore">
+      <h3>Explore</h3>
+      <ul>
+        <li><a href="#">Destination</a></li>
+        <li><a href="#">Autumn Offers</a></li>
+        <li><a href="#">Journal</a></li>
+        <li><a href="#">Plan a trip</a></li>
+      </ul>
+    </nav>
+
+    <nav class="footer-col" aria-label="Company">
+      <h3>Company</h3>
+      <ul>
+        <li><a href="#">About us</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Press</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+
+    <nav class="footer-col" aria-label="Support">
+      <h3>Support</h3>
+      <ul>
+        <li><a href="#">Help centre</a></li>
+        <li><a href="#">Booking terms</a></li>
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Cookies</a></li>
+      </ul>
+    </nav>
+
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2026 WANDER. All rights reserved.</p>
+    <a class="to-top" href="#top">
+      Back to top
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5M5.5 11.5L12 5l6.5 6.5"/></svg>
+    </a>
+  </div>
+
+  <p class="wordmark" aria-hidden="true">WANDER</p>
+</footer>
+
+    </div>
+
+
+<script>
+(() => {
+  /* ---------- 1. Postcard filters ----------
+     Clicking a pill marks it active and hides every card whose data-tags
+     doesn't include that pill's data-filter ("all" shows everything). */
+  const buttons = document.querySelectorAll('.escapes .filters button');
+  const cards = document.querySelectorAll('.escapes .card');
+  buttons.forEach(btn => btn.addEventListener('click', () => {
+    buttons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    cards.forEach(c => {
+      const show = f === 'all' || c.dataset.tags.split(' ').includes(f);
+      c.classList.toggle('hide', !show);  // cards re-play their entrance when shown again
+    });
+  }));
+
+  /* ---------- 2. Scroll reveal ----------
+     Each entry is [selector, delay in ms between siblings]. Matching elements
+     get .reveal; the observer adds .in-view when they enter the viewport. */
+  const groups = [
+    ['.escapes h2, .escapes .sub, .escapes .filters', 120],
+    ['.escapes .cards > .card', 110],
+    ['.escapes .more', 0],
+    ['.why .eyebrow, .why h2, .why .sub', 100],
+    ['.why .grid > .card', 100],
+    ['.guide .eyebrow, .guide h2, .guide .sub', 100],
+    ['.guide .panel', 0],
+    ['.tips .tip', 120],
+    ['.stories .eyebrow, .stories h2, .stories .sub', 100],
+    ['.stories .card', 120],
+    ['.stories .more', 0],
+    ['.join-card', 0],
+    ['.footer-top > *', 100],
+    ['.footer-bottom', 0],
+    ['.wordmark', 0],
+  ];
+  const targets = [];
+  groups.forEach(([selector, step]) => {
+    document.querySelectorAll(selector).forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.setProperty('--d', i * step + 'ms');
+      targets.push(el);
+    });
+  });
+
+  /* ---------- 3. Newsletter form ----------
+     Placeholder behaviour: confirms on screen without sending anything. */
+  const signup = document.querySelector('.join .signup');
+  signup.addEventListener('submit', e => {
+    e.preventDefault();
+    document.querySelector('.join .fine').textContent = 'Thanks! Your first email is on its way.';
+    signup.reset();
+  });
+
+  // Row numbers stagger the timeline bars as they draw in.
+  document.querySelectorAll('.guide .row').forEach((row, i) => row.style.setProperty('--i', i));
+
+  // Very old browsers without IntersectionObserver just show everything.
+  if (!('IntersectionObserver' in window)) {
+    targets.forEach(el => el.classList.add('in-view'));
+    return;
+  }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('in-view');
+      io.unobserve(entry.target);  // reveal once, not every time it scrolls past
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  targets.forEach(el => io.observe(el));
+})();
+</script>
+
+</body>
+
+</html>
