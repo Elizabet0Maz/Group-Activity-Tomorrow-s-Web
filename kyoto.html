@@ -713,32 +713,62 @@
 </footer>
 
 <script>
-
-    const footerItems = document.querySelectorAll('.footer-top > *, .footer-bottom, .wordmark');
-
-    const footerObserver = new IntersectionObserver((entries) => {
-
-        entries.forEach(entry => {
-
-            if (entry.isIntersecting) {
-
-                entry.target.classList.add('in-view');
-
+(() => {
+    /* ---------- 1. Scroll reveal ----------
+       Each entry is [selector, delay in ms between siblings, optional direction].
+       Matching elements get .fx-reveal; .in-view is added when they scroll into view. */
+    const groups = [
+        ['.kyoto-details-image, .vermont-details-image', 0, 'from-left'],
+        ['.kyoto-details-content > *, .vermont-details-content > *', 90],
+        ['.itinerary-row, .vermont-itinerary-row', 110],
+        ['.stay-row, .vermont-stay-row', 0],
+        ['.calendar-eyebrow, .calendar-content h2, .calendar-table, .calendar-legend, .calendar-note', 110],
+        ['.footer-top > *', 100],
+        ['.footer-bottom', 0],
+        ['.wordmark', 0],
+    ];
+    const targets = [];
+    groups.forEach(([selector, step, dir]) => {
+        document.querySelectorAll(selector).forEach((el, i) => {
+            if (el.classList.contains('fx-reveal') || el.classList.contains('reveal')) return;
+            if (el.closest('.site-footer')) {
+                el.classList.add('reveal');            // footer keeps its original reveal style
+            } else {
+                el.classList.add('fx-reveal');
+                if (dir) el.classList.add(dir);
             }
-
+            el.style.setProperty('--d', (i % 6) * step + 'ms');
+            targets.push(el);
         });
-
     });
 
+    if (!('IntersectionObserver' in window)) {
+        targets.forEach(el => el.classList.add('in-view'));
+    } else {
+        const io = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('in-view');
+                io.unobserve(entry.target);          // reveal once
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        targets.forEach(el => io.observe(el));
+    }
 
-    footerItems.forEach(item => {
-
-        item.classList.add('reveal');
-
-        footerObserver.observe(item);
-
-    });
-
+    /* ---------- 2. Hero parallax ---------- */
+    const leaves = document.querySelector('.kyoto-leaves');
+    if (leaves && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        let ticking = false;
+        addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                leaves.style.setProperty('--scroll-y', Math.min(scrollY, 1100) * 0.18 + 'px');
+                ticking = false;
+            });
+        }, { passive: true });
+    }
+})();
 </script>
 
 

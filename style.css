@@ -422,3 +422,77 @@ nav a:hover{
     padding: 0;
     display: block;
 }
+
+/* =========================================================
+   MOTION & HOVER EFFECTS (hero)
+   Entrance animations use the separate `translate` property and
+   `backwards` fill, so they never fight your existing transforms
+   (e.g. the search bar's translateX(-50%)) or hover transitions.
+   ========================================================= */
+:root{ --ease: cubic-bezier(.22, 1, .36, 1); }
+
+@keyframes heroRise   { from { opacity: 0; translate: 0 30px; } }
+@keyframes heroFade   { from { opacity: 0; } }
+@keyframes leavesFall { from { opacity: 0; translate: 0 -70px; } }
+@keyframes leavesSway { 0%, 100% { translate: 0 0; } 50% { translate: 0 14px; } }
+@keyframes shimmer    { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+@keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(140, 59, 30, .5); } 50% { box-shadow: 0 0 0 6px rgba(140, 59, 30, 0); } }
+
+/* Page-load entrance, staggered top to bottom */
+nav                 { animation: heroFade .9s ease backwards; }
+.leaves-overlay     {
+    transform: translateY(var(--scroll-y, 0px));   /* scroll parallax (set by script) */
+    animation: leavesFall 1.8s var(--ease) backwards, leavesSway 9s ease-in-out 1.8s infinite;
+}
+.season-pill        { animation: heroRise .9s var(--ease) .15s backwards; }
+.hero-content h1    { animation: heroRise 1s  var(--ease) .30s backwards; }
+.hero-content p     { animation: heroRise 1s  var(--ease) .50s backwards; }
+.mountain-container { animation: heroRise 1.4s var(--ease) .25s backwards; }
+.search-bar         { animation: heroRise 1s  var(--ease) .80s backwards; }
+
+/* Slow golden shimmer across the gradient headline */
+.hero-content h1 span{
+    background-size: 220% 100%;
+    animation: shimmer 5s ease-in-out infinite alternate;
+}
+
+/* "New" badge gently pulses */
+.badge-new{ animation: badgePulse 2.4s ease-out infinite; }
+
+/* Transitions for hover targets */
+nav a:not(.btn-book){
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    padding-bottom: 3px;
+    transition: opacity .2s ease, background-size .35s var(--ease);
+}
+.logo img      { transition: transform .4s var(--ease); }
+.btn-book      { transition: transform .25s var(--ease), background-color .25s, box-shadow .25s; }
+.season-pill   { transition: background-color .25s, color .25s, border-color .25s; }
+.search-bar    { transition: translate .35s var(--ease), box-shadow .35s var(--ease), border-color .3s; }
+.search-field  { transition: background-color .25s; border-radius: 12px; cursor: text; }
+.search-label  { transition: color .25s; }
+.search-btn img{ transition: transform .3s var(--ease); }
+
+@media (hover: hover){
+    nav a:not(.btn-book):hover { background-size: 100% 1px; opacity: 1; }
+    .logo:hover img            { transform: scale(1.08) rotate(-3deg); }
+    .btn-book:hover            { background-color: #A5481F; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(140, 59, 30, .35); opacity: 1; }
+    .season-pill:hover         { background-color: rgba(142, 115, 92, .12); border-color: #8C3B1E; color: #8C3B1E; }
+
+    .search-bar:hover          { translate: 0 -4px; box-shadow: 0 16px 34px rgba(45, 30, 20, .22); }
+    .search-field:hover        { background-color: rgba(142, 90, 50, .08); }
+    .search-field:hover .search-label { color: #8C3B1E; }
+    .search-btn:hover img      { transform: translateX(3px); }
+}
+.btn-book:active, .search-btn:active { transform: scale(.96); }
+.search-bar:focus-within       { border-color: #8C3B1E; box-shadow: 0 0 0 4px rgba(140, 59, 30, .18), 0 12px 30px rgba(45, 30, 20, .2); }
+.search-btn:focus-visible, .btn-book:focus-visible { outline: 2px solid #8C3B1E; outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0ms !important;
+        transition-duration: .01ms !important;
+    }
+}

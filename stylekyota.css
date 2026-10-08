@@ -1095,3 +1095,99 @@ body{
     opacity: 1;
     transform: translateY(0);
 }
+
+
+:root{ --ease: cubic-bezier(.22, 1, .36, 1); }
+
+@keyframes kRise   { from { opacity: 0; translate: 0 30px; } }
+@keyframes kFade   { from { opacity: 0; } }
+@keyframes kFall   { from { opacity: 0; translate: 0 -70px; } }
+@keyframes kSway   { 0%, 100% { translate: 0 0; } 50% { translate: 0 14px; } }
+@keyframes kZoom   { from { opacity: 0; scale: 1.06; } }
+@keyframes kShimmer{ from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+@keyframes kPulse  { 0%, 100% { box-shadow: 0 0 0 0 rgba(140, 59, 30, .5); } 50% { box-shadow: 0 0 0 6px rgba(140, 59, 30, 0); } }
+
+.kyoto-nav      { animation: kFade .9s ease backwards; }
+.kyoto-leaves   {
+    transform: translateY(var(--scroll-y, 0px));   /* scroll parallax (set by script) */
+    animation: kFall 1.8s var(--ease) backwards, kSway 9s ease-in-out 1.8s infinite;
+}
+.location-pill  { animation: kRise .9s var(--ease) .15s backwards; }
+.kyoto-content h1 { animation: kRise 1s var(--ease) .30s backwards; }
+.kyoto-content p  { animation: kRise 1s var(--ease) .50s backwards; }
+.kyoto-image img  { animation: kZoom 1.8s var(--ease) .2s backwards; }
+.trip-card        { animation: kRise 1s var(--ease) .85s backwards; }
+.kyoto-content h1 span{
+    background-size: 220% 100%;
+    animation: kShimmer 5s ease-in-out infinite alternate;
+}
+.badge-new { animation: kPulse 2.4s ease-out infinite; }
+
+
+.kyoto-nav a:not(.book-button){
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    padding-bottom: 3px;
+    transition: opacity .2s ease, background-size .35s var(--ease);
+}
+.logo img       { transition: transform .4s var(--ease); }
+.book-button    { transition: transform .25s var(--ease), background-color .25s, box-shadow .25s, opacity .2s; }
+.location-pill  { transition: background-color .25s, color .25s, border-color .25s; }
+.trip-card      { transition: translate .35s var(--ease), box-shadow .35s var(--ease); }
+.trip-item      { transition: transform .3s var(--ease), background-color .25s; border-radius: 14px; }
+.trip-button img{ transition: transform .3s var(--ease); }
+.plan-button, .vermont-plan-button { transition: transform .25s var(--ease), box-shadow .25s, opacity .2s; }
+.itinerary-row, .vermont-itinerary-row { transition: transform .35s var(--ease); }
+.day-box, .vermont-day-box             { transition: transform .35s var(--ease), filter .3s; }
+.stay-row, .vermont-stay-row           { transition: transform .35s var(--ease); }
+.itinerary-info h3, .vermont-itinerary-info h3 { transition: letter-spacing .35s var(--ease); }
+.kyoto-details-image img, .vermont-details-image img, .calendar-table img { transition: transform .6s var(--ease), filter .6s; }
+.legend-dot     { transition: transform .25s var(--ease); }
+
+
+.fx-reveal:not(.in-view) { opacity: 0; translate: 0 34px; }
+.fx-reveal.in-view {
+    animation: kRise .9s var(--ease) backwards;
+    animation-delay: var(--d, 0ms);
+}
+
+.fx-reveal.from-left:not(.in-view)  { translate: -50px 0; }
+.fx-reveal.from-right:not(.in-view) { translate: 50px 0; }
+.fx-reveal.from-left.in-view  { animation-name: kSlideL; }
+.fx-reveal.from-right.in-view { animation-name: kSlideR; }
+@keyframes kSlideL { from { opacity: 0; translate: -50px 0; } }
+@keyframes kSlideR { from { opacity: 0; translate: 50px 0; } }
+
+
+@media (hover: hover){
+    .kyoto-nav a:not(.book-button):hover { background-size: 100% 1px; opacity: 1; }
+    .logo:hover img            { transform: scale(1.08) rotate(-3deg); }
+    .book-button:hover         { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(140, 59, 30, .35); }
+    .location-pill:hover       { background-color: rgba(142, 115, 92, .12); color: #8C3B1E; }
+
+    .trip-card:hover           { translate: 0 -4px; box-shadow: 0 16px 34px rgba(45, 30, 20, .22); }
+    .trip-item:hover           { transform: translateY(-3px); background-color: rgba(142, 90, 50, .08); }
+    .trip-button:hover img     { transform: translateX(4px); }
+
+    .plan-button:hover, .vermont-plan-button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(68, 45, 28, .3); }
+
+    .itinerary-row:hover, .vermont-itinerary-row:hover { transform: translateX(8px); }
+    .itinerary-row:hover .day-box, .vermont-itinerary-row:hover .vermont-day-box { transform: scale(1.06); filter: brightness(1.12); }
+    .itinerary-row:hover h3, .vermont-itinerary-row:hover h3 { letter-spacing: .02em; }
+    .stay-row:hover, .vermont-stay-row:hover { transform: translateX(6px); }
+
+    .kyoto-details-image:hover img,
+    .vermont-details-image:hover img { transform: translateY(-8px) scale(1.02); filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .25)); }
+    .calendar-table:hover img        { transform: scale(1.015); }
+    .legend-dot:hover                { transform: scale(1.35); }
+}
+.book-button:active, .plan-button:active, .vermont-plan-button:active { transform: scale(.96); }
+
+@media (prefers-reduced-motion: reduce){
+    html { scroll-behavior: auto; }
+    *, *::before, *::after{
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0ms !important;
+        transition-duration: .01ms !important;
+    }
+}
